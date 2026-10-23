@@ -1,150 +1,243 @@
-# HPNet: Dynamic Trajectory Forecasting with Historical Prediction Attention
-[arXiv](https://arxiv.org/pdf/2404.06351.pdf) | [paper](https://openaccess.thecvf.com/content/CVPR2024/papers/Tang_HPNet_Dynamic_Trajectory_Forecasting_with_Historical_Prediction_Attention_CVPR_2024_paper.pdf) | [poster](assets/poster_2024_cvpr_hpnet.png)\
-This repository is the official implementation of HPNet: Dynamic Trajectory Forecasting with Historical Prediction Attention published in CVPR 2024.
-![AnoverviewofHPNet](assets/HPNet.png)
+# NTSPNet
 
-## Table of Contents
-+ [Setup](#setup)
-+ [Datasets](#datasets)
-+ [Training](#training)
-+ [Validation](#validation)
-+ [Testing](#testing)
-+ [Pre-trained Models & Results](#pre-trained-models--results)
-+ [Acknowledgements](#acknowledgements)
-+ [Citation](#citation)
+NTSPNet is a multi-agent trajectory prediction model for the
+[INTERACTION dataset](https://interaction-dataset.com/). It extends the HPNet
+joint-prediction backbone with driving-style representation, lane reachability,
+priority/conflict reasoning, and lane-based traffic propagation while preserving
+the original HPNet prediction path.
 
-## Setup
-Clone the repository and set up the environment:
-```
-git clone https://github.com/XiaolongTang23/HPNet.git
-cd HPNet
-conda create -n HPNet python=3.8
-conda activate HPNet
-conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 pytorch-cuda=12.1 -c pytorch -c nvidia
-pip install torch_geometric==2.3.1
-conda install pytorch-lightning==2.0.3
-```
-*Note:* For compatibility, you may experiment with different versions, e.g., PyTorch 1.12.1 has been confirmed to work.
+This repository contains the paper implementation, exact full-data training
+recipes, validation code, ablation recipes, and a manifest for all released
+checkpoints. Reported numbers below are validation-set results over 11,794
+INTERACTION scenarios; they are not official blind-test leaderboard scores.
 
-## Datasets
+## Model overview
 
-<details>
-<summary><b>Argoverse</b></summary>
-<p>
+The released model uses two frozen feature paths and a trainable residual
+fusion layer:
 
-1. Download the [Argoverse Motion Forecasting Dataset v1.1](https://www.argoverse.org/av1.html#download-link). After downloading and extracting the tar.gz files, organize the dataset directory as follows:
+1. A frozen local HPNet V22 trunk remains the primary proposal/refinement path.
+2. A frozen semantic provider supplies Driving Style, Reachability, Priority,
+   conflict-aware interaction, and Vehicle-to-Lane-to-Lane-to-Vehicle context.
+3. Six zero-initialized representation adapters inject proposal/refinement
+   corrections through three learned module gates.
+4. The HPNet proposal and refinement heads produce six joint trajectory modes.
 
-```
-/path/to/Argoverse_root/
-├── train/
-│   └── data/
-│       ├── 1.csv
-│       ├── 2.csv
-│       ├── ...
-└── val/
-    └── data/
-        ├── 1.csv
-        ├── 2.csv
-        ├── ...
-```
+Only the residual fusion parameters are optimized in the released one-epoch
+recipe. The final model therefore starts from the exact local V22 prediction
+function and learns bounded corrections without replacing the baseline trunk.
 
-2. Install the [Argoverse API](https://github.com/argoverse/argoverse-api).
+For the full method description, see
+[`docs/final_model_spec.md`](docs/final_model_spec.md).
 
-</p>
-</details>
+## Validation results
 
-<details>
-<summary><b>INTERACTION</b></summary>
-<p>
+All entries use the same 11,794-scene validation set and the same CSV
+kinematics/V22 map semantics. "Local baseline V22" is the checkpoint used by
+this project; it is not claimed to be numerically identical to the checkpoint
+or table entry released with the original HPNet paper.
 
-1. Download the [INTERACTION Dataset v1.2](https://interaction-dataset.com/). Here, we only need the data for the multi-agent tracks. After downloading and extracting the zip files, organize the dataset directory as follows:
+| Model | Active residual modules | Seed | minJointADE | minJointFDE | minJointMR |
+|---|---|---:|---:|---:|---:|
+| Local baseline V22 | None | - | 0.17112444 | 0.54093823 | 0.12260471 |
+| Style only | Style | 2048 | 0.16715579 | 0.53781700 | 0.11895879 |
+| Reachability only | Reachability | 2048 | 0.16926204 | 0.53986531 | 0.12082415 |
+| Priority only | Priority | 2048 | 0.16724522 | 0.53742462 | 0.11929795 |
+| Style + Reachability | Style, Reachability | 2048 | 0.16685672 | 0.53717697 | 0.11794133 |
+| Style + Priority | Style, Priority | 2048 | 0.16599800 | 0.53602624 | 0.11760217 |
+| Reachability + Priority | Reachability, Priority | 2048 | 0.16723168 | 0.53737497 | 0.11870442 |
+| **NTSPNet** | **All three** | **2048** | **0.16599056** | **0.53593224** | **0.11785654** |
+| NTSPNet | All three | 1024 | 0.16575511 | 0.53539568 | 0.11819569 |
+| NTSPNet | All three | 4096 | 0.16586624 | 0.53585106 | 0.11751738 |
 
-```
-/path/to/INTERACTION_root/
-├── maps/
-├── test_conditional-multi-agent/
-├── test_multi-agent/
-├── train/
-│   ├── DR_CHN_Merging_ZS0_train
-│   ├── ...
-└── val/
-    ├── DR_CHN_Merging_ZS0_val
-    ├── ...
+Exact asset names, file sizes, SHA-256 hashes, and metric values are recorded
+in [`HPNet-INTERACTION/configs/released_checkpoints.csv`](HPNet-INTERACTION/configs/released_checkpoints.csv).
 
+## Installation
+
+The paper environment used Python 3.8, PyTorch 2.4.1 with CUDA 12.1,
+PyTorch Lightning 2.0.3, PyTorch Geometric 2.3.1, and lanelet2.
+
+```bash
+conda env create -f HPNet-INTERACTION/environment.yml
+conda activate ntspnet
 ```
 
-2. Install the map dependency [lanelet2](https://github.com/fzi-forschungszentrum-informatik/Lanelet2):
-```
-pip install lanelet2==1.2.1
-```
+If lanelet2 is not available through your selected conda channels, install its
+Python bindings separately for the same environment. A pip-oriented package
+list is also provided in `HPNet-INTERACTION/requirements.txt`.
 
-</p>
-</details>
+## Dataset preparation
 
+Obtain INTERACTION under its own license and arrange the official files as:
 
-## Training
-Data preprocessing may take several hours the first time you run this project. Training on 8 RTX 4090 GPUs, one epoch takes about 30 and 6 minutes for Argoverse and INTERACTION, respectively.
-```
-# For Argoverse
-python HPNet-Argoverse/train.py --root /path/to/Argoverse_root/ --train_batch_size 2 --val_batch_size 2 --devices 8
-
-# For INTERACTION
-python HPNet-INTERACTION/train.py --root /path/to/INTERACTION_root/ --train_batch_size 2 --val_batch_size 2 --devices 8
+```text
+/path/to/INTERACTION/
+|-- maps/*.osm
+|-- train/*.csv
+|-- val/*.csv
+`-- test_multi-agent/*.csv       # only needed for challenge submission
 ```
 
-## Validation
-```
-# For Argoverse
-python HPNet-Argoverse/val.py --root /path/to/Argoverse_root/ --val_batch_size 2 --devices 8 --ckpt_path /path/to/checkpoint.ckpt
+Set a reusable path. The commands below are run from the repository root:
 
-# For INTERACTION
-python HPNet-INTERACTION/val.py --root /path/to/INTERACTION_root/ --val_batch_size 2 --devices 8 --ckpt_path /path/to/checkpoint.ckpt
+```bash
+export DATA_ROOT=/path/to/INTERACTION
 ```
 
-## Testing
-```
-# For Argoverse
-python HPNet-Argoverse/test.py --root /path/to/Argoverse_root/ --test_batch_size 2 --devices 1 --ckpt_path /path/to/checkpoint.ckpt
+Create the PyG processed scenarios:
 
-# For INTERACTION
-python HPNet-INTERACTION/test.py --root /path/to/INTERACTION_root/ --test_batch_size 2 --devices 1 --ckpt_path /path/to/checkpoint.ckpt
+```bash
+python HPNet-INTERACTION/prepare_interaction_data.py \
+  --root "$DATA_ROOT" --split train val
 ```
 
-## Pre-trained Models & Results
+Generate the CSV-motion sidecars used by every reported experiment:
 
-### Argoverse
-- **Pre-trained model:** [Download here](https://drive.google.com/file/d/1PqOw3t3-Tf2v6nlqz2bqr0NjYIw_YJwK/view?usp=drive_link)
-- **Performance Metrics:**
-
-| Split | brier-minFDE | minFDE | MR | minADE |
-|-------|:------------:|:------:|:--:|:------:|
-| Val   | 1.5060       | 0.8708 | 0.0685 | 0.6378 |
-| Test  | 1.7375       | 1.0986 | 0.1067 | 0.7612 |
-
-### INTERACTION
-- **Pre-trained model:** [Download here](https://drive.google.com/file/d/1wj6Wg2-eta4pVFxHARsaVCyisk2Fr-qM/view?usp=sharing)
-- **Performance Metrics:**
-
-| Split | minJointFDE | minJointADE |
-|-------|:-----------:|:-----------:|
-| Val   | 0.5577      | 0.1739      |
-| Test  | 0.8231      | 0.2548      |
-
-
-## Acknowledgements
-We sincerely appreciate [Argoverse](https://github.com/argoverse/argoverse-api), [INTERACTION](https://github.com/interaction-dataset/interaction-dataset),[QCNet](https://github.com/ZikangZhou/QCNet) and [HiVT](https://github.com/ZikangZhou/HiVT) for their awesome codebases.
-
-
-## Citation
-
-If HPNet has been helpful in your research, please consider citing our work:
-
+```bash
+python HPNet-INTERACTION/compute_csv_motion_cache.py \
+  --root "$DATA_ROOT" \
+  --output_dir "$DATA_ROOT/csv_motion_v1" \
+  --split train val
 ```
-@inproceedings{tang2024hpnet,
-  title={Hpnet: Dynamic trajectory forecasting with historical prediction attention},
-  author={Tang, Xiaolong and Kan, Meina and Shan, Shiguang and Ji, Zhilong and Bai, Jinfeng and Chen, Xilin},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
-  pages={15261--15270},
-  year={2024}
-}
+
+For exact paper reproduction, download these small assets from the
+`v1.0-paper` GitHub Release. Extract the map archive into the dataset
+root:
+
+```bash
+tar -xzf /path/to/v22_map_geometry_v1.tar.gz -C "$DATA_ROOT"
+cp /path/to/train_style_statistics.pt "$DATA_ROOT/"
 ```
+
+The resulting paths are:
+
+```text
+/path/to/INTERACTION/
+|-- train_style_statistics.pt
+`-- v22_map_geometry_v1/*.pt
+```
+
+The map cache can alternatively be regenerated from the official map files:
+
+```bash
+python HPNet-INTERACTION/compute_v22_map_geometry_cache.py \
+  --root "$DATA_ROOT" \
+  --output_dir "$DATA_ROOT/v22_map_geometry_v1"
+```
+
+The released Style statistics should be used for exact paper reproduction.
+To recompute them from the training split instead:
+
+```bash
+python HPNet-INTERACTION/compute_style_statistics.py \
+  --root "$DATA_ROOT" \
+  --motion_source csv \
+  --csv_motion_cache_dir "$DATA_ROOT/csv_motion_v1" \
+  --output "$DATA_ROOT/train_style_statistics.pt"
+```
+
+Expected processed counts are 47,584 training scenarios and 11,794 validation
+scenarios.
+
+## Released weights
+
+Checkpoint binaries are not committed to Git. Download them from the
+`v1.0-paper` GitHub Release into any local directory and verify them:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+A complete NTSPNet or ablation checkpoint is self-contained for validation.
+Training the final model or an ablation from the released initialization
+requires both:
+
+- `hpnet_local_baseline_v22.ckpt`: frozen primary HPNet trunk initialization.
+- `semantic_provider_v14.ckpt`: frozen semantic-provider initialization.
+
+See [the checkpoint guide](HPNet-INTERACTION/checkpoints/README.md).
+
+## Validate a released checkpoint
+
+```bash
+export DATA_ROOT=/path/to/INTERACTION
+export CHECKPOINT=/path/to/ntspnet_final_seed2048.ckpt
+bash HPNet-INTERACTION/scripts/validate.sh
+```
+
+The program prints the scenario count and headline minJointADE, minJointFDE,
+and minJointMR after validation. Cache paths and worker count can be overridden
+with `CSV_MOTION_CACHE_DIR`, `V22_MAP_GEOMETRY_CACHE_DIR`, and
+`NUM_WORKERS`.
+
+## Train the final model
+
+The released recipe uses one GPU, physical batch size 2, gradient accumulation
+8 (effective batch size 16), one full-data epoch, learning rate `2e-4`, and
+seed 2048.
+
+```bash
+export DATA_ROOT=/path/to/INTERACTION
+export BASE_WEIGHTS=/path/to/hpnet_local_baseline_v22.ckpt
+export PROVIDER_WEIGHTS=/path/to/semantic_provider_v14.ckpt
+bash HPNet-INTERACTION/scripts/train_final.sh
+```
+
+Set `GPU_ID`, `NUM_WORKERS`, `PREFETCH_FACTOR`, or `RUN_LOG_ROOT` as
+needed. Existing log files are never overwritten.
+
+Additional full-model seeds:
+
+```bash
+bash HPNet-INTERACTION/scripts/train_full.sh all 1024
+bash HPNet-INTERACTION/scripts/train_full.sh all 4096
+```
+
+## Run the ablations
+
+With the same three environment variables set:
+
+```bash
+bash HPNet-INTERACTION/scripts/ablations/train_style_only.sh
+bash HPNet-INTERACTION/scripts/ablations/train_reachability_only.sh
+bash HPNet-INTERACTION/scripts/ablations/train_priority_only.sh
+bash HPNet-INTERACTION/scripts/ablations/train_style_reachability.sh
+bash HPNet-INTERACTION/scripts/ablations/train_style_priority.sh
+bash HPNet-INTERACTION/scripts/ablations/train_reachability_priority.sh
+```
+
+These wrappers call the same training entry point and differ only in the
+enabled residual module gates. This is the configuration encoded by each
+released ablation checkpoint; the checkpoint filename alone does not select
+modules.
+
+## Repository layout
+
+```text
+HPNet-INTERACTION/
+|-- model/PNet.py                 # Lightning model and prediction/loss logic
+|-- modules/                      # HPNet trunk and NTSPNet semantic modules
+|-- datasets/                     # INTERACTION preprocessing
+|-- datamodules/                  # training/validation data pipelines
+|-- transforms/                   # map, association, and augmentation transforms
+|-- scripts/                      # portable final and ablation recipes
+|-- configs/                      # released checkpoint manifest
+|-- tests/                        # regression/unit tests
+|-- train.py
+|-- val.py
+`-- test.py
+```
+
+Local datasets, processed files, caches, Lightning logs, generated analysis,
+and checkpoint binaries are excluded by `.gitignore`.
+
+## Acknowledgement and license
+
+NTSPNet is derived from the official
+[HPNet](https://github.com/XiaolongTang23/HPNet) implementation. The retained
+baseline code and this derivative repository are distributed under the Apache
+License 2.0; see [`LICENSE`](LICENSE) and
+[`HPNet-INTERACTION/NOTICE.md`](HPNet-INTERACTION/NOTICE.md).
+
+Please also follow the INTERACTION dataset license and citation requirements.

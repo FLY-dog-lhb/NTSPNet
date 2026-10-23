@@ -31,7 +31,7 @@ class MapEncoder(nn.Module):
         self._l2l_edge_type = ['left_neighbor', 'right_neighbor', 'predecessor', 'successor']
 
         self.p_emb_layer = TwoLayerMLP(input_dim=1, hidden_dim=hidden_dim, output_dim=hidden_dim)
-        self.l_emb_layer = TwoLayerMLP(input_dim=1, hidden_dim=hidden_dim, output_dim=hidden_dim)
+        self.l_emb_layer = TwoLayerMLP(input_dim=5, hidden_dim=hidden_dim, output_dim=hidden_dim)
 
         self.p2l_emb_layer = TwoLayerMLP(input_dim=4, hidden_dim=hidden_dim, output_dim=hidden_dim)
         self.l2l_emb_layer = TwoLayerMLP(input_dim=8, hidden_dim=hidden_dim, output_dim=hidden_dim)
@@ -46,8 +46,13 @@ class MapEncoder(nn.Module):
         p_length = data['polyline']['length']
         p_embs = self.p_emb_layer(input=p_length.unsqueeze(-1))        #[(C1,...,Cb),D]
 
-        l_length = data['lane']['length']
-        l_input = l_length.unsqueeze(-1)
+        l_input = torch.stack([
+            data['lane']['length'],
+            data['lane']['curvature'],
+            data['lane']['turn_direction'].float(),
+            data['lane']['has_traffic_sign'].float(),
+            data['lane']['speed_limit'],
+        ], dim=-1)                                                    #[(M1,...,Mb),5]
         l_embs = self.l_emb_layer(input=l_input)   #[(M1,...,Mb),D]
 
         #edge

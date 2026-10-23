@@ -1,3 +1,6 @@
 from transforms.horizontal_flip import HorizontalFlip
 from transforms.agent_random_occlusion import AgentRandomOcclusion
 from transforms.lane_random_occlusion import LaneRandomOcclusion
+from transforms.lane_association import LaneAssociationTransform
+from transforms.teacher_trajectory import TeacherTrajectoryTransform
+from transforms.v22_map_geometry import V22MapGeometryTransform

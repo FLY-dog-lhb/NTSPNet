@@ -14,3 +14,6 @@ from utils.process_data import transform_point_to_global_coordinate
 from utils.process_data import generate_target
 from utils.process_data import generate_reachable_matrix
 from utils.process_data import generate_predict_mask
+from utils.kinematics import HistoricalKinematics
+from utils.kinematics import compute_historical_kinematics
+from utils.kinematics import update_agent_kinematics

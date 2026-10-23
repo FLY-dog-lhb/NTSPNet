@@ -9,7 +9,10 @@ class LaneRandomOcclusion(BaseTransform):
         self.lane_occlusion_ratio = lane_occlusion_ratio
 
     def _mask_edge_index(self, edge_index, occlusion_index):
-        mask = ~torch.isin(edge_index[0], occlusion_index)
+        mask = (
+            ~torch.isin(edge_index[0], occlusion_index)
+            & ~torch.isin(edge_index[1], occlusion_index)
+        )
         return edge_index[:, mask]
 
     def __call__(self, data):   
@@ -20,8 +23,19 @@ class LaneRandomOcclusion(BaseTransform):
         visible_mask[occlusion_index] = False
         data['lane']['visible_mask'] = visible_mask
 
-        edge_types = ['left_neighbor_edge_index', 'right_neighbor_edge_index', 'predecessor_edge_index', 'successor_edge_index']
+        edge_types = [
+            'left_neighbor_edge_index',
+            'right_neighbor_edge_index',
+            'adjacent_left_edge_index',
+            'adjacent_right_edge_index',
+            'predecessor_edge_index',
+            'successor_edge_index',
+            'conflict_edge_index',
+            'lane_change_pair_index',
+        ]
         for edge_type in edge_types:
+            if edge_type not in data['lane', 'lane']:
+                continue
             edge_index = data['lane', 'lane'][edge_type]
             data['lane', 'lane'][edge_type] = self._mask_edge_index(edge_index, occlusion_index)
 

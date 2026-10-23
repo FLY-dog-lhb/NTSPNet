@@ -6,8 +6,10 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 
 from datasets import INTERACTIONDataset
 from torch_geometric.loader import DataLoader
-from model import HPNet
+from torch_geometric.transforms import Compose
+from model import PNet
 
+from transforms import LaneAssociationTransform
 from transforms import LaneRandomOcclusion
 
 if __name__ == '__main__':
@@ -21,12 +23,26 @@ if __name__ == '__main__':
     parser.add_argument('--persistent_workers', type=bool, default=True)
     parser.add_argument('--devices', type=int, required=True)
     parser.add_argument('--ckpt_path', type=str, required=True)
-    HPNet.add_model_specific_args(parser)
+    PNet.add_model_specific_args(parser)
     args = parser.parse_args()
 
-    model = HPNet.load_from_checkpoint(checkpoint_path=args.ckpt_path)
+    model = PNet.load_from_checkpoint(checkpoint_path=args.ckpt_path)
     trainer = pl.Trainer(devices=args.devices, accelerator='gpu')
-    test_dataset = INTERACTIONDataset(args.root, 'test', transform=LaneRandomOcclusion(0.0))
+    test_dataset = INTERACTIONDataset(
+        root=args.root,
+        split='test',
+        transform=Compose([
+            LaneRandomOcclusion(0.0),
+            LaneAssociationTransform(
+                model.num_historical_steps,
+                model.observation_step_time,
+            ),
+        ]),
+        num_historical_steps=model.num_historical_steps,
+        num_future_steps=model.num_future_steps,
+        observation_step_time=model.observation_step_time,
+        motion_source=model.motion_source,
+        csv_motion_cache_dir=model.csv_motion_cache_dir,
+    )
     dataloader = DataLoader(test_dataset, batch_size=args.test_batch_size, shuffle=False,num_workers=args.num_workers, pin_memory=args.pin_memory,persistent_workers=args.persistent_workers)
     trainer.test(model, dataloader)
-

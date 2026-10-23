@@ -4,3 +4,4 @@ from metrics.minFDE import MinFDE
 from metrics.MR import MR
 from metrics.minJointADE import minJointADE
 from metrics.minJointFDE import minJointFDE
+from metrics.minJointMR import minJointMR 

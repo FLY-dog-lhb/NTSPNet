@@ -49,7 +49,8 @@ class GraphAttention(MessagePassing):
     def forward(self,
                 x: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]],
                 edge_index: torch.Tensor,
-                edge_attr: Optional[torch.Tensor] = None) -> torch.Tensor:
+                edge_attr: Optional[torch.Tensor] = None,
+                attention_bias: Optional[torch.Tensor] = None) -> torch.Tensor:
         if self.if_self_attention:
             x_src = x_dst = self.mha_prenorm_src(x)
         else:
@@ -58,7 +59,13 @@ class GraphAttention(MessagePassing):
             x_dst = self.mha_prenorm_dst(x_dst)
         if self.has_edge_attr:
             edge_attr = self.mha_prenorm_edge(edge_attr)
-        x_dst = x_dst + self._mha_layer(x_src, x_dst, edge_index, edge_attr)
+        x_dst = x_dst + self._mha_layer(
+            x_src,
+            x_dst,
+            edge_index,
+            edge_attr,
+            attention_bias,
+        )
         x_dst = x_dst + self._ffn_layer(self.ffn_prenorm(x_dst))
         return x_dst
 
@@ -66,6 +73,7 @@ class GraphAttention(MessagePassing):
                 x_dst_i: torch.Tensor,
                 x_src_j: torch.Tensor,
                 edge_attr: Optional[torch.Tensor],
+                attention_bias: Optional[torch.Tensor],
                 index: torch.Tensor,
                 ptr: Optional[torch.Tensor]) -> torch.Tensor:
         query_i = self.q(x_dst_i).view(-1, self.num_heads, self.head_dim)
@@ -76,6 +84,15 @@ class GraphAttention(MessagePassing):
             value_j = value_j + self.edge_v(edge_attr).view(-1, self.num_heads, self.head_dim)
         scale = self.head_dim ** 0.5
         weight = (query_i * key_j).sum(dim=-1) / scale
+        if attention_bias is not None:
+            if attention_bias.ndim == 1:
+                attention_bias = attention_bias.unsqueeze(-1)
+            if attention_bias.size(-1) not in (1, self.num_heads):
+                raise ValueError(
+                    'attention_bias must have shape [num_edges, 1] or '
+                    '[num_edges, num_heads]'
+                )
+            weight = weight + attention_bias
         weight = softmax(weight, index, ptr)
         weight = self.attn_drop(weight)
         return (value_j * weight.unsqueeze(-1)).view(-1, self.num_heads*self.head_dim)
@@ -84,8 +101,15 @@ class GraphAttention(MessagePassing):
                    x_src: torch.Tensor,
                    x_dst: torch.Tensor,
                    edge_index: torch.Tensor,
-                   edge_attr: Optional[torch.Tensor]=None) -> torch.Tensor:
-        return self.propagate(edge_index=edge_index, edge_attr=edge_attr, x_dst=x_dst, x_src=x_src)
+                   edge_attr: Optional[torch.Tensor] = None,
+                   attention_bias: Optional[torch.Tensor] = None) -> torch.Tensor:
+        return self.propagate(
+            edge_index=edge_index,
+            edge_attr=edge_attr,
+            attention_bias=attention_bias,
+            x_dst=x_dst,
+            x_src=x_src,
+        )
 
     def _ffn_layer(self, x: torch.Tensor) -> torch.Tensor:
         return self.ffn(x)
