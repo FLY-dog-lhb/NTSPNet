@@ -53,6 +53,48 @@ or table entry released with the original HPNet paper.
 Exact asset names, file sizes, SHA-256 hashes, and metric values are recorded
 in [`NTSPNet-INTERACTION/configs/released_checkpoints.csv`](NTSPNet-INTERACTION/configs/released_checkpoints.csv).
 
+## Argoverse 2 Zero-Shot Generalization
+
+To evaluate the cross-dataset generalization capability of NTSPNet, we conduct zero-shot experiments on the Argoverse 2 Motion Forecasting dataset.
+
+### Experimental Protocol
+
+NTSPNet is trained exclusively on the INTERACTION dataset. The model checkpoint obtained from INTERACTION training is directly applied to Argoverse 2 without additional training, fine-tuning, or parameter updates.
+
+The same INTERACTION-trained model is used for both datasets. No separate Argoverse 2 training procedure or AV2-specific model checkpoint is required.
+
+The experiments evaluate both multi-agent joint trajectory prediction and marginal trajectory prediction, using six prediction modes.
+
+- **Joint prediction:** Prediction performance is evaluated across multiple target agents using scene-level joint trajectory hypotheses.
+- **Marginal prediction:** Prediction performance is evaluated independently for individual target agents.
+
+The evaluation metrics include average displacement error (ADE), final displacement error (FDE), and miss rate (MR).
+
+### Experimental Results
+
+The following results correspond to Table 7 of our manuscript.
+
+| Split | Task | ADE (m) | FDE (m) | MR |
+|---|---|---:|---:|---:|
+| Validation | Joint | 0.8587 | 2.0254 | 0.5793 |
+| Validation | Marginal | 0.8398 | 1.9567 | 0.3159 |
+| Test | Joint | 0.7853 | 1.8785 | 0.6047 |
+| Test | Marginal | 0.7572 | 1.7834 | 0.3044 |
+
+These results were obtained without training or fine-tuning NTSPNet on Argoverse 2, demonstrating its ability to transfer trajectory prediction capabilities from INTERACTION to a different dataset.
+
+### Model Weights
+
+The Argoverse 2 experiments reuse the model weights trained on INTERACTION. The released checkpoints are available through the repository's [v1.0.2 Release](https://github.com/FLY-dog-lhb/NTSPNet/releases/tag/v1.0.2).
+
+No independently trained Argoverse 2 checkpoint is provided because the experiments use zero-shot transfer.
+
+### Dataset Availability
+
+The Argoverse 2 Motion Forecasting dataset is available from the [official Argoverse 2 website](https://www.argoverse.org/av2.html).
+
+The dataset is not redistributed in this repository. Users should obtain the dataset from its official source and comply with its terms of use.
+
 ## Installation
 
 The paper environment used Python 3.8, PyTorch 2.4.1 with CUDA 12.1,
