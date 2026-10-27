@@ -45,29 +45,32 @@ not the one used for the reported results.
 
 ## Derived data used by the paper
 
-The following directories or files are derived from the official raw data:
-
 | Artifact | Source | Reproduction rule |
 |---|---|---|
 | `train_processed/`, `val_processed/` | official CSV and map files | regenerate locally |
 | `csv_motion_v1/train/`, `csv_motion_v1/val/` | official CSV files | regenerate locally |
-| `v22_map_geometry_v1/` | official map files | use the released archive for exact paper reproduction |
-| `train_style_statistics.pt` | official training split | use the released file for exact paper reproduction |
+| `v22_map_geometry_v1/*.pt` | official map files | copy the 18 individually tracked repository files |
+| `train_style_statistics.pt` | official training split | download the released file |
 
-The two small paper-specific assets are attached to the GitHub Release. Their
-filenames and hashes are covered by the Release `SHA256SUMS` file:
+The exact V22 map semantics are stored without an archive at:
 
-- `v22_map_geometry_v1.tar.gz`
-- `train_style_statistics.pt`
+```text
+NTSPNet-INTERACTION/reproducibility_assets/v22_map_geometry_v1/
+```
+
+The directory contains 18 `.pt` files and its own `SHA256SUMS`. Each file can
+be inspected and downloaded separately from GitHub. The Style statistics remain
+a single file attached to the GitHub Release and are covered by the Release
+`SHA256SUMS`.
 
 The processed scenarios and CSV-motion cache are intentionally not distributed:
-they are deterministic derivatives of the official dataset and are too large
+they are deterministic derivatives of the official raw dataset and are too large
 for the source repository.
 
 ## One-command preparation
 
-Download the Release assets into one directory, then run from the repository
-root:
+Download `train_style_statistics.pt` and `SHA256SUMS` from the v1.0.2 Release
+into one directory, then run from the repository root:
 
 ```bash
 export DATA_ROOT=/path/to/INTERACTION
@@ -75,10 +78,10 @@ export PAPER_ASSET_DIR=/path/to/downloaded/release/assets
 bash NTSPNet-INTERACTION/scripts/prepare_paper_data.sh
 ```
 
-The script verifies the required raw directories and Release assets, creates
-the processed train/validation scenarios, generates the CSV-motion cache,
-installs the released map geometry and Style statistics without overwriting an
-existing copy, and checks the final scenario counts.
+The script verifies the official raw directories, all 18 tracked map files, and
+the released Style-statistics file. It then creates the processed scenarios,
+generates the CSV-motion cache, installs both paper-specific assets without
+overwriting existing copies, and checks the final scenario and map counts.
 
 To perform the steps manually, use the commands in the root
 [`README.md`](README.md).
@@ -99,15 +102,22 @@ training a new final or ablation model.
 
 ## Integrity and provenance
 
-Do not commit raw INTERACTION files, generated caches, or processed tensors to
-this repository. Keep the official archive names and a record of the download
-date. For NTSPNet Release assets, verify `SHA256SUMS` in the asset directory:
+Verify the unarchived map assets directly in the repository:
+
+```bash
+cd NTSPNet-INTERACTION/reproducibility_assets/v22_map_geometry_v1
+sha256sum -c SHA256SUMS
+```
+
+Verify downloaded Release assets from their download directory:
 
 ```bash
 cd "$PAPER_ASSET_DIR"
 sha256sum -c SHA256SUMS
 ```
 
-This separation preserves dataset licensing and provenance while keeping every
-NTSPNet-specific file, recipe, checksum, and result manifest in this
-repository and its GitHub Release.
+Keep the official INTERACTION archive names and a record of the download date.
+Do not commit raw INTERACTION files, generated processed scenarios, or the
+CSV-motion cache. This separation preserves dataset licensing and provenance
+while keeping every NTSPNet-specific representation, recipe, checksum, weight,
+and result manifest publicly accessible from the repository and its Release.

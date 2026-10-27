@@ -4,6 +4,7 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 PROJECT_DIR=$(cd "${SCRIPT_DIR}/.." && pwd)
 PYTHON_BIN=${PYTHON_BIN:-python}
+REPOSITORY_MAP_DIR="${PROJECT_DIR}/reproducibility_assets/v22_map_geometry_v1"
 
 cd "${PROJECT_DIR}"
 
@@ -11,7 +12,19 @@ while IFS= read -r -d '' script_path; do
   bash -n "${script_path}"
 done < <(find scripts -type f -name '*.sh' -print0)
 
-"${PYTHON_BIN}" -m compileall -q   datamodules datasets layers losses metrics model modules transforms utils   ./*.py
+map_count=$(find "${REPOSITORY_MAP_DIR}" -maxdepth 1 -type f -name '*.pt' | wc -l)
+if (( map_count != 18 )); then
+  echo "Expected 18 tracked V22 map geometry files; found ${map_count}." >&2
+  exit 1
+fi
+(
+  cd "${REPOSITORY_MAP_DIR}"
+  sha256sum -c SHA256SUMS
+)
+
+"${PYTHON_BIN}" -m compileall -q \
+  datamodules datasets layers losses metrics model modules transforms utils \
+  ./*.py
 "${PYTHON_BIN}" -m pytest tests -q
 
 if [[ -n "${CHECKPOINT:-}" ]]; then

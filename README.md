@@ -89,8 +89,9 @@ Set a reusable path. The commands below are run from the repository root:
 export DATA_ROOT=/path/to/INTERACTION
 ```
 
-For the exact paper setup, download the small data assets and `SHA256SUMS`
-from the GitHub Release, then run:
+For the exact paper setup, download `train_style_statistics.pt` and
+`SHA256SUMS` from the v1.0.2 GitHub Release. The 18 exact map-semantic files
+are stored individually in this repository. Then run:
 
 ```bash
 export PAPER_ASSET_DIR=/path/to/downloaded/release/assets
@@ -115,13 +116,13 @@ python NTSPNet-INTERACTION/compute_csv_motion_cache.py \
   --split train val
 ```
 
-For exact paper reproduction, download these small assets from the
-`v1.0-paper` GitHub Release. Extract the map archive into the dataset
-root:
+For exact paper reproduction, copy the unarchived map files from the
+repository and the released Style statistics into the dataset root:
 
 ```bash
-tar -xzf /path/to/v22_map_geometry_v1.tar.gz -C "$DATA_ROOT"
-cp /path/to/train_style_statistics.pt "$DATA_ROOT/"
+cp -a NTSPNet-INTERACTION/reproducibility_assets/v22_map_geometry_v1 \
+  "$DATA_ROOT/"
+cp "$PAPER_ASSET_DIR/train_style_statistics.pt" "$DATA_ROOT/"
 ```
 
 The resulting paths are:
@@ -157,7 +158,7 @@ scenarios.
 ## Released weights
 
 Checkpoint binaries are not committed to Git. Download them from the
-`v1.0-paper` GitHub Release into any local directory and verify them:
+`v1.0.2` GitHub Release into any local directory and verify them:
 
 ```bash
 sha256sum -c SHA256SUMS
@@ -257,6 +258,7 @@ NTSPNet-INTERACTION/
 |-- transforms/                   # map, association, and augmentation transforms
 |-- scripts/                      # portable final and ablation recipes
 |-- configs/                      # released checkpoint manifest
+|-- reproducibility_assets/       # unarchived paper-specific map semantics
 |-- tests/                        # regression/unit tests
 |-- train.py
 |-- val.py

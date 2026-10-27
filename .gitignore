@@ -180,3 +180,6 @@ v22_map_geometry_v1/
 train_style_statistics.pt
 release_assets/
 NTSPNet-INTERACTION/interaction-dataset-master/
+!NTSPNet-INTERACTION/reproducibility_assets/
+!NTSPNet-INTERACTION/reproducibility_assets/v22_map_geometry_v1/
+!NTSPNet-INTERACTION/reproducibility_assets/v22_map_geometry_v1/**

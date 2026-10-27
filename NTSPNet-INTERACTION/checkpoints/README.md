@@ -1,7 +1,7 @@
 # Released checkpoints
 
 Checkpoint binaries are intentionally not stored in Git. Download them from
-the `v1.0-paper` GitHub Release. The exact filenames, roles, sizes, SHA-256
+the `v1.0.2` GitHub Release. The exact filenames, roles, sizes, SHA-256
 hashes, and validation metrics are recorded in
 `../configs/released_checkpoints.csv`.
 
@@ -19,7 +19,8 @@ For new final/ablation training, both initialization files are required:
 - `hpnet_local_baseline_v22.ckpt`: frozen primary prediction trunk.
 - `semantic_provider_v14.ckpt`: frozen semantic context provider.
 
-Exact paper reproduction also uses `train_style_statistics.pt` and the
-contents of `v22_map_geometry_v1.tar.gz`. Extract the latter into the
-INTERACTION dataset root. The CSV motion cache is regenerated locally from the
-official raw CSV files and is not redistributed.
+Exact paper reproduction also uses the released `train_style_statistics.pt`
+and the 18 individually tracked files in
+`../reproducibility_assets/v22_map_geometry_v1/`. The preparation script copies
+and verifies them without requiring a map archive. The CSV motion cache is
+regenerated locally from the official raw CSV files and is not redistributed.
