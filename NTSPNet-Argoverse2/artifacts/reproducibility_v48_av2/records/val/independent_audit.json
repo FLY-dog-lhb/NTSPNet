@@ -1,0 +1,29 @@
+{
+  "audit_date": "2026-09-26",
+  "tests_passed_on_2026_09_24": 32,
+  "tests_warnings": 8,
+  "matched_original_scenarios_targets_and_input_adapter": true,
+  "checkpoint_and_source_unchanged": true,
+  "model_state_unchanged": true,
+  "previous_metrics_bitwise_equal": false,
+  "previous_metrics_max_absolute_difference": 0.0010037422180175781,
+  "previous_metrics_max_difference_field": "minJointFDE",
+  "previous_metrics_max_difference_scenario": "bf4d7059-fe77-4cb8-b6da-c29be3abbd59",
+  "previous_aggregate_absolute_differences": {
+    "minJointADE": 4.6690305077756733e-07,
+    "minJointFDE": 1.0755593105038486e-06,
+    "minJointMR": 0.0,
+    "focal_minADE": 2.520018776319688e-06,
+    "focal_minFDE": 6.842962672060082e-06,
+    "focal_MR": 0.0,
+    "cv_ADE": 0.0,
+    "cv_FDE": 0.0,
+    "cv_MR": 0.0
+  },
+  "previous_scene_miss_classifications_equal": true,
+  "per_actor_to_scene_aggregation_matches": true,
+  "all_subset_aggregations_match": true,
+  "single_target_equivalence": true,
+  "marginal_ade_fde_bounds_hold": true,
+  "marginal_actor_rows": 773
+}

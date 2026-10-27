@@ -1,0 +1,16 @@
+{
+  "audit_date": "2026-09-26",
+  "test_scenario_membership_and_seed_verified": true,
+  "test_and_val_samples_disjoint": true,
+  "original_raw_histories_have_no_future": true,
+  "target_ids_independently_match_raw_histories": true,
+  "annotation_ids_horizons_and_hash_verified": true,
+  "checkpoint_and_model_state_unchanged": true,
+  "protocol_matches_validation": true,
+  "all_scene_actor_and_subset_aggregations_match": true,
+  "tests_passed": 39,
+  "tests_warnings": 8,
+  "evaluated_scenes": 253,
+  "evaluated_targets": 917,
+  "skipped_scenes": 3
+}

@@ -1,0 +1,3 @@
+-r requirements.txt
+# Optional official reader, Python >=3.9 with a matching binary wheel.
+av2==0.3.6

@@ -1,0 +1,28 @@
+{
+  "source": "HPNet-INTERACTION current working tree",
+  "sha256_before_av2_adaptation": {
+    "layers/__init__.py": "4c5474880ca635006e863e5da98b78c346b57e6ab8a9f58ff4a89ab27dfdd174",
+    "layers/graph_attention.py": "84d5e04651d3d2ffeed9f15e4e8bdfd962052b91220df4b39341913d42f3f32f",
+    "layers/two_layer_mlp.py": "090f3c178509f49579a5a968726a779eb4bfe089596fc19136495e661727247d",
+    "utils/__init__.py": "843d2d8235672b81809d8eb32cb9bbc90b38eaf6641544062f9ab8b3a606f279",
+    "utils/init_weights.py": "0b441aa9c00c34c4303971bb118ca7e050a1735f60a9482122370fd0d8014220",
+    "utils/kinematics.py": "8cf02a2ef85cb9f0a02a11313552125e5860231a5c1db67ab67da91bfdc42eb7",
+    "utils/process_data.py": "31322df28deb18c756ba9702000bfebe2f09a1479507166c943d4d40cda00394",
+    "modules/__init__.py": "514497ca1fc114ae9a7b6a6488ddb0e04ce102b29c4a26017cdf0e6ff35a86ee",
+    "modules/backbone.py": "fdcea8400b947169f064ffd2a67034b0f2104ff6b38f9b26658c62bbf287930e",
+    "modules/lane_reachability.py": "5fe095bc57633b8b990608c4cc482e4670bed6d97647e6d1310011d24c803c21",
+    "modules/lane_topology.py": "5bb8ffa77044bf3efacedb6d23f0b8c018e8212bc57c994eff5f1779f096204a",
+    "modules/map_encoder.py": "ef33ad1820d7724ffc4bd882fd6d97fc252c53d70a655143cfc241a8009bdaf6",
+    "modules/original_backbone.py": "fb26d95be37731c2514fcc88bc1d9cf71d564439a6a0f54cd40519998c84f1eb",
+    "modules/original_residual_backbone.py": "5756569e7fd16b8497ac85460a97bed978d03287c2bd4220302649a962463b57",
+    "modules/priority.py": "05ab6edb76bfc719ef21d3fc99de6084df43561c3bf32d5a9d0b05e26378b64c",
+    "modules/vehicle_interaction_graph.py": "80789807083ac1feb25ea1262ffee50b573e909e8d418cf9ce2cc8f4ebcf7df7",
+    "transforms/lane_association.py": "35db7bab4c7b668822c6cdc17a91d548344f9555c94453daf948974351f2cd5f"
+  },
+  "adaptations": {
+    "modules/original_backbone.py": "Mask adjacent velocity differences across missing frames.",
+    "modules/lane_reachability.py": "Parameterize reachable distance budget for a six-second horizon.",
+    "model/PNet.py": "AV2 training, single-agent/multi-world metrics, calibrated provider and guarded fusion initialization.",
+    "datasets/argoverse2_dataset.py": "Independent AV2 schema reader, raw-centerline map policy, geometry-derived conflict candidates."
+  }
+}

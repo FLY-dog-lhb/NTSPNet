@@ -1,0 +1,12 @@
+# Tested with the existing PNet_av2 Python 3.8 environment. Python 3.10 is
+# recommended for new environments and required for the optional modern av2 API.
+numpy>=1.23,<2
+pandas>=1.4,<3
+pyarrow>=12,<18
+shapely>=2,<3
+torch>=2.0,<2.6
+torch-geometric==2.3.1
+pytorch-lightning==2.0.3
+torchmetrics>=0.11,<1.5
+tqdm>=4.64
+pytest>=7,<9

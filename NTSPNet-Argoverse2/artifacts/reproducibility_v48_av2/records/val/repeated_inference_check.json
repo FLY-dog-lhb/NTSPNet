@@ -1,0 +1,24 @@
+{
+  "check_date": "2026-09-26",
+  "scenario_id": "bf4d7059-fe77-4cb8-b6da-c29be3abbd59",
+  "repeats": 3,
+  "identical_graph": true,
+  "max_prediction_coordinate_difference": 0.0025959014892578125,
+  "per_repeat_joint_metrics": [
+    {
+      "minJointADE": 1.8950340747833252,
+      "minJointFDE": 5.27313756942749,
+      "minJointMR": 1.0
+    },
+    {
+      "minJointADE": 1.8952178955078125,
+      "minJointFDE": 5.27414083480835,
+      "minJointMR": 1.0
+    },
+    {
+      "minJointADE": 1.895216703414917,
+      "minJointFDE": 5.274132251739502,
+      "minJointMR": 1.0
+    }
+  ]
+}
