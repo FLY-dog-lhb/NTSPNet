@@ -53,6 +53,20 @@ or table entry released with the original HPNet paper.
 Exact asset names, file sizes, SHA-256 hashes, and metric values are recorded
 in [`NTSPNet-INTERACTION/configs/released_checkpoints.csv`](NTSPNet-INTERACTION/configs/released_checkpoints.csv).
 
+# NTSPNet: INTERACTION-to-Argoverse 2 Zero-Shot Evaluation
+
+This directory documents and implements the zero-shot cross-dataset evaluation of NTSPNet on the Argoverse 2 (AV2) Motion Forecasting dataset. The evaluated checkpoint was trained only on the INTERACTION dataset. No AV2 training, fine-tuning, optimizer update, style-statistics recalibration, or target-domain parameter fitting is performed.
+
+The evaluation uses a custom protocol that preserves the temporal interface of the INTERACTION-trained model:
+
+- observation: 10 frames at 10 Hz (1 s), AV2 timesteps 40--49;
+- prediction: 30 frames at 10 Hz (3 s), AV2 timesteps 50--79;
+- modes: 6 shared trajectory modes;
+- targets: scored or focal vehicles with complete 10-frame histories and complete 30-frame futures;
+- coordinate system: translation to the focal vehicle position at timestep 49, without rotation.
+
+This is not the official AV2 5 s observation-to-6 s prediction leaderboard protocol. The reported numbers must therefore be interpreted as a controlled cross-dataset transfer experiment, not as official AV2 leaderboard results.
+
 ## Installation
 
 The paper environment used Python 3.8, PyTorch 2.4.1 with CUDA 12.1,
