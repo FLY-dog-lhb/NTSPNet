@@ -51,7 +51,7 @@ or table entry released with the original HPNet paper.
 | NTSPNet | All three | 4096 | 0.16586624 | 0.53585106 | 0.11751738 |
 
 Exact asset names, file sizes, SHA-256 hashes, and metric values are recorded
-in [`HPNet-INTERACTION/configs/released_checkpoints.csv`](HPNet-INTERACTION/configs/released_checkpoints.csv).
+in [`NTSPNet-INTERACTION/configs/released_checkpoints.csv`](NTSPNet-INTERACTION/configs/released_checkpoints.csv).
 
 ## Installation
 
@@ -59,17 +59,21 @@ The paper environment used Python 3.8, PyTorch 2.4.1 with CUDA 12.1,
 PyTorch Lightning 2.0.3, PyTorch Geometric 2.3.1, and lanelet2.
 
 ```bash
-conda env create -f HPNet-INTERACTION/environment.yml
+conda env create -f NTSPNet-INTERACTION/environment.yml
 conda activate ntspnet
 ```
 
 If lanelet2 is not available through your selected conda channels, install its
 Python bindings separately for the same environment. A pip-oriented package
-list is also provided in `HPNet-INTERACTION/requirements.txt`.
+list is also provided in `NTSPNet-INTERACTION/requirements.txt`.
 
 ## Dataset preparation
 
-Obtain INTERACTION under its own license and arrange the official files as:
+Obtain INTERACTION under its own license from the
+[official Hugging Face dataset page](https://huggingface.co/datasets/INTERACTION-dataset/INTERACTION-dataset)
+and arrange the official files as shown below. See [`DATA.md`](DATA.md) for
+licensing, provenance, derived-artifact roles, integrity checks, and the
+one-command paper-data preparation path.
 
 ```text
 /path/to/INTERACTION/
@@ -85,17 +89,27 @@ Set a reusable path. The commands below are run from the repository root:
 export DATA_ROOT=/path/to/INTERACTION
 ```
 
+For the exact paper setup, download the small data assets and `SHA256SUMS`
+from the GitHub Release, then run:
+
+```bash
+export PAPER_ASSET_DIR=/path/to/downloaded/release/assets
+bash NTSPNet-INTERACTION/scripts/prepare_paper_data.sh
+```
+
+The equivalent manual steps follow.
+
 Create the PyG processed scenarios:
 
 ```bash
-python HPNet-INTERACTION/prepare_interaction_data.py \
+python NTSPNet-INTERACTION/prepare_interaction_data.py \
   --root "$DATA_ROOT" --split train val
 ```
 
 Generate the CSV-motion sidecars used by every reported experiment:
 
 ```bash
-python HPNet-INTERACTION/compute_csv_motion_cache.py \
+python NTSPNet-INTERACTION/compute_csv_motion_cache.py \
   --root "$DATA_ROOT" \
   --output_dir "$DATA_ROOT/csv_motion_v1" \
   --split train val
@@ -121,7 +135,7 @@ The resulting paths are:
 The map cache can alternatively be regenerated from the official map files:
 
 ```bash
-python HPNet-INTERACTION/compute_v22_map_geometry_cache.py \
+python NTSPNet-INTERACTION/compute_v22_map_geometry_cache.py \
   --root "$DATA_ROOT" \
   --output_dir "$DATA_ROOT/v22_map_geometry_v1"
 ```
@@ -130,7 +144,7 @@ The released Style statistics should be used for exact paper reproduction.
 To recompute them from the training split instead:
 
 ```bash
-python HPNet-INTERACTION/compute_style_statistics.py \
+python NTSPNet-INTERACTION/compute_style_statistics.py \
   --root "$DATA_ROOT" \
   --motion_source csv \
   --csv_motion_cache_dir "$DATA_ROOT/csv_motion_v1" \
@@ -156,14 +170,14 @@ requires both:
 - `hpnet_local_baseline_v22.ckpt`: frozen primary HPNet trunk initialization.
 - `semantic_provider_v14.ckpt`: frozen semantic-provider initialization.
 
-See [the checkpoint guide](HPNet-INTERACTION/checkpoints/README.md).
+See [the checkpoint guide](NTSPNet-INTERACTION/checkpoints/README.md).
 
 ## Validate a released checkpoint
 
 ```bash
 export DATA_ROOT=/path/to/INTERACTION
 export CHECKPOINT=/path/to/ntspnet_final_seed2048.ckpt
-bash HPNet-INTERACTION/scripts/validate.sh
+bash NTSPNet-INTERACTION/scripts/validate.sh
 ```
 
 The program prints the scenario count and headline minJointADE, minJointFDE,
@@ -181,7 +195,7 @@ seed 2048.
 export DATA_ROOT=/path/to/INTERACTION
 export BASE_WEIGHTS=/path/to/hpnet_local_baseline_v22.ckpt
 export PROVIDER_WEIGHTS=/path/to/semantic_provider_v14.ckpt
-bash HPNet-INTERACTION/scripts/train_final.sh
+bash NTSPNet-INTERACTION/scripts/train_final.sh
 ```
 
 Set `GPU_ID`, `NUM_WORKERS`, `PREFETCH_FACTOR`, or `RUN_LOG_ROOT` as
@@ -190,8 +204,8 @@ needed. Existing log files are never overwritten.
 Additional full-model seeds:
 
 ```bash
-bash HPNet-INTERACTION/scripts/train_full.sh all 1024
-bash HPNet-INTERACTION/scripts/train_full.sh all 4096
+bash NTSPNet-INTERACTION/scripts/train_full.sh all 1024
+bash NTSPNet-INTERACTION/scripts/train_full.sh all 4096
 ```
 
 ## Run the ablations
@@ -199,12 +213,12 @@ bash HPNet-INTERACTION/scripts/train_full.sh all 4096
 With the same three environment variables set:
 
 ```bash
-bash HPNet-INTERACTION/scripts/ablations/train_style_only.sh
-bash HPNet-INTERACTION/scripts/ablations/train_reachability_only.sh
-bash HPNet-INTERACTION/scripts/ablations/train_priority_only.sh
-bash HPNet-INTERACTION/scripts/ablations/train_style_reachability.sh
-bash HPNet-INTERACTION/scripts/ablations/train_style_priority.sh
-bash HPNet-INTERACTION/scripts/ablations/train_reachability_priority.sh
+bash NTSPNet-INTERACTION/scripts/ablations/train_style_only.sh
+bash NTSPNet-INTERACTION/scripts/ablations/train_reachability_only.sh
+bash NTSPNet-INTERACTION/scripts/ablations/train_priority_only.sh
+bash NTSPNet-INTERACTION/scripts/ablations/train_style_reachability.sh
+bash NTSPNet-INTERACTION/scripts/ablations/train_style_priority.sh
+bash NTSPNet-INTERACTION/scripts/ablations/train_reachability_priority.sh
 ```
 
 These wrappers call the same training entry point and differ only in the
@@ -212,10 +226,30 @@ enabled residual module gates. This is the configuration encoded by each
 released ablation checkpoint; the checkpoint filename alone does not select
 modules.
 
+## Verify the repository
+
+Run the complete source and regression checks from the repository root:
+
+```bash
+bash NTSPNet-INTERACTION/scripts/check_reproduction.sh
+```
+
+To include a strict state-dict load of any released final or ablation
+checkpoint:
+
+```bash
+export CHECKPOINT=/path/to/a/released.ckpt
+bash NTSPNet-INTERACTION/scripts/check_reproduction.sh
+```
+
+This check does not train the model or run full validation. Full validation is
+performed by `scripts/validate.sh` after the official validation data and
+derived caches have been prepared.
+
 ## Repository layout
 
 ```text
-HPNet-INTERACTION/
+NTSPNet-INTERACTION/
 |-- model/PNet.py                 # Lightning model and prediction/loss logic
 |-- modules/                      # HPNet trunk and NTSPNet semantic modules
 |-- datasets/                     # INTERACTION preprocessing
@@ -238,6 +272,6 @@ NTSPNet is derived from the official
 [HPNet](https://github.com/XiaolongTang23/HPNet) implementation. The retained
 baseline code and this derivative repository are distributed under the Apache
 License 2.0; see [`LICENSE`](LICENSE) and
-[`HPNet-INTERACTION/NOTICE.md`](HPNet-INTERACTION/NOTICE.md).
+[`NTSPNet-INTERACTION/NOTICE.md`](NTSPNet-INTERACTION/NOTICE.md).
 
 Please also follow the INTERACTION dataset license and citation requirements.

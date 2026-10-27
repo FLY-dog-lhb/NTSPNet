@@ -22,7 +22,7 @@ The seed-2048 final model obtains:
 - SHA256SUMS for integrity verification.
 
 Checkpoint roles and exact metrics are documented in
-`HPNet-INTERACTION/configs/released_checkpoints.csv`.
+`NTSPNet-INTERACTION/configs/released_checkpoints.csv`.
 
 The CSV motion cache is not included because it can be regenerated from the
 official INTERACTION CSV files with `compute_csv_motion_cache.py`. The

@@ -1,9 +1,9 @@
 # PNet 最终模型技术说明
 
-> 文档用途：硕士论文撰写  
-> 状态日期：2026-08-28  
-> 代码依据：`HPNet-INTERACTION/` 当前工作树  
-> 最终模型配置：released seed-2048 checkpoint hyperparameters  
+> 文档用途：硕士论文撰写
+> 状态日期：2026-08-28
+> 代码依据：`NTSPNet-INTERACTION/` 当前工作树
+> 最终模型配置：released seed-2048 checkpoint hyperparameters
 > 最终模型检查点：`ntspnet_final_seed2048.ckpt`
 
 本文只描述当前最终采用的 PNet，不把历史实验路线混入正文。代码中虽然仍保留若干历史实验分支，但凡未被 V48 配置和 `original_residual` 前向/训练分支实际使用的内容，均不属于本文所称“最终模型”。历史废弃方案仅在文档最后集中说明。
